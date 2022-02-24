@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>NeutralinoJs sample app</title>
+    <link rel="stylesheet" href="css/style.css" />
+
+    <script defer src="js/main.js"></script>
+    <script defer src="js/playground.js"></script>
+  </head>
+
+  <body>
+    <div class="enter-room hidden">
+      <div class="form absolute-center">
+        <h1>Welcome to Chat Rooms!</h1>
+        <input type="text" id="your-name" placeholder="Your Name" />
+        <input type="text" id="room-id" placeholder="Room ID" />
+        <a href="#" class="create-new-room">Create New Room</a>
+        <a class="btn" id="btn-enter-room">Enter Room</a>
+      </div>
+    </div>
+
+    <main class="nhidden">
+      <ul class="top-bar">
+        <li class="actions">ACTIONS</li>
+        <li class="status">ONLINE</li>
+        <li class="time">TIME</li>
+      </ul>
+
+      <div class="messages">
+        <p class="msg by-me">Hey! What's up?</p>
+        <p class="msg by-me">Are you there?</p>
+        <p class="msg by-them">What's your name mate</p>
+        <p class="msg by-them">Philippe Phallope</p>
+        <p class="msg by-me">Oh.</p>
+        <p class="msg by-me">Hey! What's up?</p>
+        <p class="msg by-me">Are you there?</p>
+        <p class="msg by-them">What's your name mate</p>
+        <p class="msg by-them">Philippe Phallope</p>
+        <p class="msg by-me">Oh.</p>
+      </div>
+
+      <div class="bottom-bar">
+        <input type="text" id="msg-inupt" />
+        <a href="#" class="btn" id="btn-send-msg">SEND</a>
+      </div>
+    </main>
+  </body>
+</html>
