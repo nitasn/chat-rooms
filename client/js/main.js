@@ -100,12 +100,12 @@ function randomID() {
   return res.join('-');
 }
 
-create_new_room.addEventListener('click', () => {
+create_new_room.addEventListener('click', async () => {
   const id = randomID();
   input_room_id.value = id;
-  setTimeout(() => {
-    alert('RoomID was Copied to Clipboard!');
-  }, 0);
+
+  await navigator.clipboard.writeText(id);
+  alert(`RoomID "${id}" was Copied to Clipboard!`);
 });
 
 ///////////////////////////////////////////////////////////

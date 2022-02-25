@@ -2,61 +2,76 @@ import { Server } from 'socket.io';
 import express from 'express';
 import http from 'http';
 
-const IS_VERBOSE = false;
-
-console.log = IS_VERBOSE ? console.log : () => {};
+// console.log = () => {};
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-const names = Object.create(null); // (socket.id -> name) dict
-const rooms = Object.create(null); // (socket.id -> roomID) dict
+const sockets = Object.create(null); // socket.id -> { name, roomID }
+
+function socketIDsInRoom(roomID) {
+  return [...io.sockets.adapter.rooms.get(roomID).values()];
+}
 
 io.on('connection', (socket) => {
-  console.log('client connected! socket.id ==', socket.id);
+  console.log(`client connected! socket.id == ${socket.id}`);
 
   socket.on('enter', ({ name, roomID }) => {
-    names[socket.id] = name;
-    rooms[socket.id] = roomID;
     socket.join(roomID);
 
+    sockets[socket.id] = { name, roomID };
+
     console.log(name, 'joined room', roomID);
+
     socket.to(roomID).emit('chatter-joined', name);
 
-    updateParticipants();
+    broadcastNewRoomCount();
   });
 
-  function updateParticipants() {
-    const room_sockets = io.sockets.adapter.rooms.get(rooms[socket.id]);
-    const participants = [...room_sockets.values()].map((id) => names[id]);
-    io.to(rooms[socket.id]).emit('update-participants', participants);
+  function broadcastNewRoomCount() {
+    const { roomID } = sockets[socket.id];
+
+    const participants = socketIDsInRoom(roomID).map((id) => sockets[id].name);
+
+    io.to(roomID).emit('update-participants', participants);
   }
 
-  function leave() {
-    socket.to(rooms[socket.id]).emit('chatter-left', names[socket.id]);
+  function leaveRoom() {
+    const { name, roomID } = sockets[socket.id];
 
-    socket.leave(rooms[socket.id]);
+    socket.to(roomID).emit('chatter-left', name);
 
-    updateParticipants();
+    broadcastNewRoomCount();
 
-    delete names[socket.id];
-    delete rooms[socket.id];
+    socket.leave(roomID);
+
+    delete sockets[socket.id];
   }
 
   socket.on('message', (text) => {
-    socket
-      .to(rooms[socket.id])
-      .emit('message', { name: names[socket.id], text });
+    const { name, roomID } = sockets[socket.id];
+
+    socket.to(roomID).emit('message', { name, text });
   });
 
   socket.on('leave', () => {
-    console.log(names[socket.id], 'left room', rooms[socket.id]);
-    leave();
+    const { name, roomID } = sockets[socket.id];
+    console.log(name, 'leaving room', roomID);
+
+    leaveRoom();
   });
 
   socket.on('disconnect', () => {
-    socket.id in rooms && leave();
+    // const { name, roomID } = dict[socket.id];
+    // console.log(name, 'from room', roomID, 'disconnected!');
+
+    try {
+      // todo this crashes the server every time user closes thier browser
+      socket.id in sockets && leaveRoom();
+    } catch (e) {
+      console.error(e);
+    }
   });
 });
 
