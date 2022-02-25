@@ -31,10 +31,13 @@ io.on('connection', (socket) => {
 
   function leave() {
     socket.to(rooms[socket.id]).emit('chatter-left', names[socket.id]);
+
+    socket.leave(rooms[socket.id]);
+
+    updateParticipants();
+
     delete names[socket.id];
     delete rooms[socket.id];
-
-    updateParticipants;
   }
 
   socket.on('message', (text) => {
@@ -47,6 +50,7 @@ io.on('connection', (socket) => {
     console.log(names[socket.id], 'left room', rooms[socket.id]);
     leave();
   });
+
   socket.on('disconnect', () => {
     socket.id in rooms && leave();
   });

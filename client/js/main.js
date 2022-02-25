@@ -27,18 +27,23 @@ const create_new_room = document.querySelector('.create-new-room');
 const btn_enter = document.getElementById('btn-enter-room');
 
 const action_leave = document.querySelector('.action-leave');
-const action_room_id = document.querySelector('.action-room-id');
 const action_room_count = document.querySelector('.action-room-count');
+const action_room_id = document.querySelector('.action-room-id');
 
 ///////////////////////////////////////////////////////////
 ////                     D E B U G                     ////
 ///////////////////////////////////////////////////////////
 
-const quotesPromise = fetch('quotes.json').then((res) => res.json());
+// add a call to this function wherever
+// (e.g. after btn_send_msg was clicked)
 
 async function autoReplyForDebug() {
-  const delay = (Math.random() * 2 + 1) * 1000;
+  window.quotesPromise ??= fetch('quotes.json').then((r) => r.json());
+
+  const delay = (Math.random() * 2 + 1) * 1000; // 1 to 3 seconds
+
   const [quotes] = await Promise.all([quotesPromise, sleep(delay)]);
+
   appendMsg(random_choice(quotes).text, 'by-them');
 }
 
@@ -46,11 +51,17 @@ async function autoReplyForDebug() {
 ////                 M E S S A G I N G                 ////
 ///////////////////////////////////////////////////////////
 
-function appendMsg(text, sender = 'by-me') {
+function appendMsg(name, text, { isByMe }) {
   const p = document.createElement('p');
-  p.classList.add('msg');
-  p.classList.add(sender);
-  p.innerText = text;
+
+  p.classList.add('msg', isByMe ? 'by-me' : 'by-them');
+
+  // p.innerText = text;
+
+  p.innerHTML = `
+    <h1>${name}</h1>
+    ${text}
+  `;
 
   messages_div.appendChild(p);
 
@@ -63,16 +74,6 @@ function scrollMessagesToEnd() {
     window.scrollTo(0, messages_div.scrollHeight);
   }, 0);
 }
-
-btn_send_msg.addEventListener('click', () => {
-  const msg = msg_input.value.trim();
-  if (!msg) return;
-
-  msg_input.value = '';
-  appendMsg(msg, 'by-me');
-
-  // autoReplyForDebug();
-});
 
 msg_input.addEventListener('keyup', (e) => {
   if (e.key === 'Enter') {
@@ -108,6 +109,13 @@ create_new_room.addEventListener('click', () => {
 });
 
 ///////////////////////////////////////////////////////////
+////                   G L O B A L S                   ////
+///////////////////////////////////////////////////////////
+
+let name = null;
+let roomID = null;
+
+///////////////////////////////////////////////////////////
 ////                E N T E R   R O O M                ////
 ///////////////////////////////////////////////////////////
 
@@ -115,14 +123,17 @@ function enterRoom(name, roomID) {
   screen_enter.classList.add('hidden');
   screen_main.classList.remove('hidden');
 
-  action_leave.innerText = `Leave as ${name}`;
-  action_room_id.innerText = `Room: ${roomID}`;
-  action_room_count.innerText = `Online: ...`;
+  action_room_count.innerText = `Online`;
+
+  window.name = name;
+  window.roomID = roomID;
 }
 
 function exitRoom() {
   screen_enter.classList.remove('hidden');
   screen_main.classList.add('hidden');
+
+  window.name = null;
 }
 
 ///////////////////////////////////////////////////////////
@@ -148,14 +159,29 @@ action_leave.addEventListener('click', () => {
   exitRoom();
 });
 
-socket.on('message', ({ name, text }) => {
-  console.log('received: ', { name, text });
-});
-
 socket.on('chatter-joined', (name) => {
   console.log('chatter joined:', name);
 });
 
+socket.on('chatter-left', (name) => {
+  console.log('chatter left:', name);
+});
+
 socket.on('update-participants', (participants) => {
   action_room_count.innerText = `Online: ${participants.length}`;
+});
+
+socket.on('message', ({ name, text }) => {
+  // console.log('received: ', { name, text });
+  appendMsg(name, text, { isByMe: false });
+});
+
+btn_send_msg.addEventListener('click', () => {
+  const text = msg_input.value.trim();
+  if (!text) return;
+
+  msg_input.value = '';
+  appendMsg(window.name, text, { isByMe: true });
+
+  socket.emit('message', text);
 });
