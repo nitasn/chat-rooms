@@ -122,6 +122,9 @@ let roomID = null;
 ///////////////////////////////////////////////////////////
 
 function enterRoom(name, roomID) {
+
+  messages_div.innerHTML = '';
+
   screen_enter.classList.add('hidden');
   screen_main.classList.remove('hidden');
 
