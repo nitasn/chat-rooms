@@ -2,7 +2,7 @@ import { Server } from 'socket.io';
 import express from 'express';
 import http from 'http';
 
-// console.log = () => {};
+console.log = () => {};
 
 const app = express();
 const server = http.createServer(app);
