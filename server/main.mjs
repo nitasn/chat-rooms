@@ -75,6 +75,13 @@ io.on('connection', (socket) => {
   });
 });
 
+app.get('/:id', (req, res) => {
+  // yeah that's kinda stupid but i figured why install ejs
+  // for such a simple task...
+  // the client can pull its room id from the url
+  res.sendFile('index.html', { root: path.join(__dirname, '../client') });
+});
+
 // servse static files - from the folder `client`
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';

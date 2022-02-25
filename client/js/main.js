@@ -104,8 +104,10 @@ create_new_room.addEventListener('click', async () => {
   const id = randomID();
   input_room_id.value = id;
 
-  await navigator.clipboard.writeText(id);
-  alert(`RoomID "${id}" was Copied to Clipboard!`);
+  const link = `https://web-chat-rooms.herokuapp.com/${id}`;
+  await navigator.clipboard.writeText(link);
+
+  alert(`Room Link was Copied to Clipboard!`);
 });
 
 ///////////////////////////////////////////////////////////
@@ -185,3 +187,12 @@ btn_send_msg.addEventListener('click', () => {
 
   socket.emit('message', text);
 });
+
+///////////////////////////////////////////////////////////
+////          R O O M   I D   F R O M   U R L          ////
+///////////////////////////////////////////////////////////
+
+const path = window.location.pathname.substring('/'.length);
+if (path != 'index.html') {
+  input_room_id.value = path;
+}
